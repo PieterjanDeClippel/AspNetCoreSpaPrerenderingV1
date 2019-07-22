@@ -36,16 +36,6 @@ namespace SpaPrerendering
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseSpaStaticFiles();
 
             app.UseMvc(routes =>
             {
@@ -56,10 +46,16 @@ namespace SpaPrerendering
 
             app.UseSpa(spa =>
             {
-                // To learn more about options for serving an Angular SPA from ASP.NET Core,
-                // see https://go.microsoft.com/fwlink/?linkid=864501
-
                 spa.Options.SourcePath = "ClientApp";
+
+                spa.UseSpaPrerendering(options =>
+                {
+                    options.BootModulePath = $"{spa.Options.SourcePath}/dist/server/main.js";
+                    options.BootModuleBuilder = env.IsDevelopment()
+                        ? new AngularCliBuilder(npmScript: "build:ssr")
+                        : null;
+                    options.ExcludeUrls = new[] { "/sockjs-node" };
+                });
 
                 if (env.IsDevelopment())
                 {
